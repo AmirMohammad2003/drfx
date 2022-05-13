@@ -6,7 +6,24 @@ services:
       context: ./app
     volumes:
       - ./app:/app
-    ports:
-      - "8000:8000"
+    expose:
+      - "8000"
+    env_file:
+      - ./config/environment/dev.env
     command: >
-      uwsgi --http :8000 --module config.wsgi
+      uwsgi --emperor /app/django-uwsgi.ini
+
+  webserver:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - app
+    volumes:
+        - ./config/webserver/nginx.tmpl:/etc/nginx/conf.d/nginx.tmpl
+        - ./config/webserver/localhost.crt:/etc/ssl/certs/localhost.crt
+        - ./config/webserver/localhost.key:/etc/ssl/private/localhost.key
+    env_file:
+      - ./config/environment/dev.env
+    command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.tmpl > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
