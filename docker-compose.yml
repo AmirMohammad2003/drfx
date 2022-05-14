@@ -12,7 +12,8 @@ services:
       - ./config/environment/dev.env
     command: >
       uwsgi --emperor /app/django-uwsgi.ini
-
+    depends_on:
+      - db
   webserver:
     image: nginx:alpine
     ports:
@@ -27,3 +28,8 @@ services:
     env_file:
       - ./config/environment/dev.env
     command: /bin/sh -c "envsubst < /etc/nginx/conf.d/nginx.tmpl > /etc/nginx/nginx.conf && exec nginx -g 'daemon off;'"
+
+  db:
+    image: postgres:14-alpine
+    env_file:
+      - ./config/environment/dev.env
